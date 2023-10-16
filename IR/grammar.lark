@@ -1,0 +1,50 @@
+start: instruction*
+
+?instruction: "LABEL" NAME ":" -> label
+    | "GOTO" NAME -> goto
+    | "IF" NAME relop NAME "GOTO" NAME -> if
+    | NAME "=" NAME -> assign
+    | NAME "=" unop NAME -> unary
+    | "*" NAME "=" NAME -> store
+    | NAME "=" "*" NAME -> deref
+    | NAME "=" NAME binop NAME -> binary
+    | NAME "=" NAME binop "#" DEC_NUMBER -> binaryi
+    | NAME "=" "#" DEC_NUMBER -> li
+    | "PARAM" NAME -> param
+    | "ARG" NAME -> arg
+    | "RETURN" NAME -> return
+    | "RETURN" -> return
+    | NAME "=" "CALL" NAME -> call
+    | "CALL" NAME -> call
+    | "FUNCTION" NAME ":" -> function
+    | "DEC" NAME "#" DEC_NUMBER -> dec
+
+?relop : "<" -> lt
+    | ">" -> gt
+    | "<=" -> le
+    | ">=" -> ge
+    | "==" -> eq
+    | "!=" -> ne
+    | "&&" -> and_
+    | "||" -> or_
+    
+?binop: "+" -> add
+    | "-" -> sub
+    | "*" -> mul
+    | "/" -> div
+    | "%" -> mod
+
+?unop : "-" -> neg
+    | "!" -> not
+    | "+" -> pos
+    
+
+COMMENT: "//" /[^\n]*/ NEWLINE
+NEWLINE: "\n"
+MULTILINE_COMMENT: /\/\*(\*(?!\/)|[^*])*\*\//
+
+%import python (NAME, DEC_NUMBER)
+%import common.WS
+%ignore WS
+%ignore COMMENT
+%ignore MULTILINE_COMMENT
