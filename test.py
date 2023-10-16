@@ -5,13 +5,17 @@ import datetime
 from dataclasses import dataclass
 
 ### Color Utils ###
+
+
 def red(s: str) -> str:
     return f"\033[31m{s}\033[0m"
+
 
 def green(s: str) -> str:
     return f"\033[32m{s}\033[0m"
 
 ### Test Utils ###
+
 
 @dataclass
 class Test:
@@ -74,8 +78,12 @@ def run_on_test(compiler: str, test: Test) -> TestResult:
     Run the given file on the given test testfile
     """
     if test.inputs is None:  # no input
-        result = subprocess.run(
-            [compiler, test.filename], capture_output=True)
+        try:
+            result = subprocess.run(
+                [compiler, test.filename], capture_output=True, timeout=5)
+        except subprocess.TimeoutExpired:
+            print(f"Error: {test.filename} timed out.")
+            return TestResult(test, None, -1)
         # get exit code and output
         exit_code = result.returncode
         output = result.stdout.decode("utf-8")
@@ -85,7 +93,8 @@ def run_on_test(compiler: str, test: Test) -> TestResult:
 
 def summary(test_results: list[TestResult]):
     for test_result in test_results:
-        print(f"{test_result.test.filename}: {'PASSED' if test_result.passed else 'FAILED'}")
+        print(
+            f"{test_result.test.filename}: {'PASSED' if test_result.passed else 'FAILED'}")
     passed = len([test for test in test_results if test.passed])
     print(f"{passed}/{len(test_results)} tests passed.")
     if passed == len(test_results):
@@ -105,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("input_file", type=str, help="your complier file")
     parser.add_argument("lab", type=str, help="which lab to test",
                         choices=["lab1", "lab2", "lab3", "lab4"])
-    
+
     args = parser.parse_args()
     input_file = args.input_file
     if not os.path.exists(input_file):
