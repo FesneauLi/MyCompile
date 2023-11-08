@@ -14,6 +14,9 @@ def red(s: str) -> str:
 def green(s: str) -> str:
     return f"\033[32m{s}\033[0m"
 
+def box(s: str) -> str:
+    return f"\033[1;7;37m{s}\033[0m"
+
 ### Test Utils ###
 
 
@@ -92,17 +95,23 @@ def run_on_test(compiler: str, test: Test) -> TestResult:
 
 
 def summary(test_results: list[TestResult]):
+    # get the longest filename
+    max_filename = max([len(test_result.test.filename)
+                        for test_result in test_results])
     for test_result in test_results:
-        print(
-            f"{test_result.test.filename}: {'PASSED' if test_result.passed else 'FAILED'}")
+        # align the filename
+        print(f"{test_result.test.filename.ljust(max_filename)}  ", end="")
+        print(f"{green('PASSED') if test_result.passed else red('FAILED')}")
     passed = len([test for test in test_results if test.passed])
-    print(f"{passed}/{len(test_results)} tests passed.")
+    print()
     if passed == len(test_results):
-        print("All tests passed!")
+        print(green("All tests passed!"))
+    else:
+        print(f"{passed}/{len(test_results)} tests passed.")
 
 
 def lab_test(compiler: str, lab: str) -> list[TestResult]:
-    print(f"Running {lab} test...")
+    print(box(f"Running {lab} test..."))
     tests = os.listdir(f"tests/{lab}")
     tests = [Test.parse_file(f"tests/{lab}/{test}") for test in tests]
     test_results = [run_on_test(compiler, test) for test in tests]
