@@ -4,7 +4,7 @@ BISON = bison
 CXXFLAGS = -std=c++11 -O2 -g
 SRC_DIR = src
 
-CFILES = $(shell find $(SRC_DIR) -name "*.cc")
+CFILES = $(shell find $(SRC_DIR) -name "*.cc" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp")
 OBJS = $(CFILES:.cc=.o)
 LFILE = $(shell find $(SRC_DIR) -name "*.l")
 YFILE = $(shell find $(SRC_DIR) -name "*.y")

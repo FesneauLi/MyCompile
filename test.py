@@ -2,6 +2,7 @@ import os
 import argparse
 import subprocess
 import datetime
+from tempfile import NamedTemporaryFile
 from dataclasses import dataclass
 
 ### Color Utils ###
@@ -13,6 +14,7 @@ def red(s: str) -> str:
 
 def green(s: str) -> str:
     return f"\033[32m{s}\033[0m"
+
 
 def box(s: str) -> str:
     return f"\033[1;7;37m{s}\033[0m"
@@ -76,22 +78,34 @@ class TestResult:
                 self.passed = exit_code == 0 and output == test.expected
 
 
-def run_on_test(compiler: str, test: Test) -> TestResult:
-    """
-    Run the given file on the given test testfile
-    """
-    if test.inputs is None:  # no input
-        try:
-            result = subprocess.run(
-                [compiler, test.filename], capture_output=True, timeout=5)
-        except subprocess.TimeoutExpired:
-            print(f"Error: {test.filename} timed out.")
-            return TestResult(test, None, -1)
-        # get exit code and output
-        exit_code = result.returncode
-        output = result.stdout.decode("utf-8")
-        return TestResult(test, output, exit_code)
-    assert False, "Not implemented"
+def run_on_test(compiler: str, test: Test, lab: str) -> TestResult:
+    def run_only_compiler(compiler: str, test: Test) -> TestResult:  # lab1, lab2
+        if test.inputs is None:  # no input
+            try:
+                result = subprocess.run(
+                    [compiler, test.filename], capture_output=True, timeout=5)
+            except subprocess.TimeoutExpired:
+                print(red(f"Error: {test.filename} timed out."))
+                return TestResult(test, None, -1)
+            # get exit code and output
+            exit_code = result.returncode
+            output = result.stdout.decode("utf-8")
+            return TestResult(test, output, exit_code)
+        assert False, "Not implemented input for lab1 or lab2"
+
+    def run_with_ir(compiler: str, test: Test) -> TestResult:  # lab3
+        raise NotImplementedError("Not implemented now")
+
+    def run_with_jar(compiler: str, test: Test) -> TestResult:  # lab4
+        raise NotImplementedError("Not implemented now")
+
+    match lab:
+        case "lab1" | "lab2":
+            return run_only_compiler(compiler, test)
+        case "lab3":
+            return run_with_ir(compiler, test)
+        case "lab4":
+            return run_with_jar(compiler, test)
 
 
 def summary(test_results: list[TestResult]):
@@ -114,7 +128,7 @@ def lab_test(compiler: str, lab: str) -> list[TestResult]:
     print(box(f"Running {lab} test..."))
     tests = os.listdir(f"tests/{lab}")
     tests = [Test.parse_file(f"tests/{lab}/{test}") for test in tests]
-    test_results = [run_on_test(compiler, test) for test in tests]
+    test_results = [run_on_test(compiler, test, lab) for test in tests]
     return test_results
 
 
@@ -123,7 +137,6 @@ if __name__ == "__main__":
     parser.add_argument("input_file", type=str, help="your complier file")
     parser.add_argument("lab", type=str, help="which lab to test",
                         choices=["lab1", "lab2", "lab3", "lab4"])
-
     args = parser.parse_args()
     input_file = args.input_file
     if not os.path.exists(input_file):
