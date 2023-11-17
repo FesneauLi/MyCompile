@@ -78,7 +78,7 @@ class TestResult:
                 self.passed = exit_code == 0 and output == test.expected
 
 
-def run_on_test(compiler: str, test: Test, lab: str) -> TestResult:
+def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
     def run_only_compiler(compiler: str, test: Test) -> TestResult:  # lab1, lab2
         if test.inputs is None:  # no input
             try:
@@ -95,8 +95,21 @@ def run_on_test(compiler: str, test: Test, lab: str) -> TestResult:
 
     def run_with_ir(compiler: str, test: Test) -> TestResult:  # lab3
         raise NotImplementedError("Not implemented now")
+        from IR import run as ir_run, parse_file
+        temp_file = NamedTemporaryFile(suffix=".ll")
+        try:
+            result = subprocess.run(
+                [compiler, test.filename, temp_file.name], capture_output=True, timeout=5)
+            if result.returncode != 0:
+                return TestResult(test, None, result.returncode)
+            irs = parse_file(args.file)
+            outputs = ir_run(irs)
+        except subprocess.TimeoutExpired:
+            print(red(f"Error: {test.filename} timed out."))
+            return TestResult(test, None, -1)
 
     def run_with_jar(compiler: str, test: Test) -> TestResult:  # lab4
+        VENUS_JAR = "venus.jar"
         raise NotImplementedError("Not implemented now")
 
     match lab:
@@ -124,11 +137,12 @@ def summary(test_results: list[TestResult]):
         print(f"{passed}/{len(test_results)} tests passed.")
 
 
-def lab_test(compiler: str, lab: str) -> list[TestResult]:
+def test_lab(compiler: str, lab: str) -> list[TestResult]:
     print(box(f"Running {lab} test..."))
     tests = os.listdir(f"tests/{lab}")
+    tests = filter(lambda x: x.endswith(".sy"), tests) # only test .sy files
     tests = [Test.parse_file(f"tests/{lab}/{test}") for test in tests]
-    test_results = [run_on_test(compiler, test, lab) for test in tests]
+    test_results = [run_one_test(compiler, test, lab) for test in tests]
     return test_results
 
 
@@ -138,10 +152,10 @@ if __name__ == "__main__":
     parser.add_argument("lab", type=str, help="which lab to test",
                         choices=["lab1", "lab2", "lab3", "lab4"])
     args = parser.parse_args()
-    input_file = args.input_file
+    input_file, lab = args.input_file, args.lab
     if not os.path.exists(input_file):
         print(f"File {input_file} not found.")
         exit(1)
-    test_results = lab_test(input_file, args.lab)
+    test_results = test_lab(input_file, lab)
     summary(test_results)
     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
