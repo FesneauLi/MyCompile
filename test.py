@@ -115,7 +115,6 @@ def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
                     outputs, _ = p.communicate(timeout=TIMEOUT)
                 outputs = outputs.strip().split("\n")
                 returnvalue = p.returncode
-                # print(outputs, returnvalue)
                 return TestResult(test, outputs, returnvalue)
         except subprocess.TimeoutExpired:
             print(red(f"Error: {test.filename} timed out."))
@@ -153,7 +152,6 @@ def test_lab(compiler: str, lab: str) -> list[TestResult]:
     print(box(f"Running {lab} test..."))
     tests = os.listdir(f"tests/{lab}")
     tests = filter(lambda x: x.endswith(".sy"), tests)  # only test .sy files
-    # tests = filter(lambda x: x == "if_complex_expr.sy", tests)  # just for test
     tests = [Test.parse_file(f"tests/{lab}/{test}") for test in tests]
     test_results = [run_one_test(compiler, test, lab) for test in tests]
     return test_results
