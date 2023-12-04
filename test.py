@@ -5,6 +5,12 @@ import datetime
 from tempfile import NamedTemporaryFile
 from dataclasses import dataclass
 
+### Settings ###
+
+TIMEOUT = 5
+IR_PATH = "./IR/main.py"
+VENUS_JAR = "venus.jar"
+
 ### Color Utils ###
 
 
@@ -25,40 +31,34 @@ def box(s: str) -> str:
 @dataclass
 class Test:
     filename: str
-    inputs: list[str] | None
+    input: list[str] | None
     expected: list[str] | None
     should_fail: bool
 
     def parse_file(filename: str) -> "Test":
         content = open(filename).readlines()
-        comment = []
+        comments = []
         for line in content:
             # get comment, start with //
             if line.startswith("//"):
-                comment.append(line[2:])
+                comments.append(line[2:])
             else:
                 break
-        if len(comment) == 0:  # no comment
+        if len(comments) == 0:  # no comment means success
             return Test(filename, None, None, False)
-        elif len(comment) == 1:  # one line comment must be error
-            if "Error" in comment[0]:
+        elif len(comments) == 1:
+            if "Error" in comments[0]:  # should fail
                 return Test(filename, None, None, True)
             else:
                 return Test(filename, None, None, False)
-        else:  # input and output
-            assert len(
-                comment) % 2 == 0, f"Error: {filename} has non-paired input/output"
-            inputs = []
-            expected = []
-            for i in range(0, len(comment), 2):
-                assert "Expected Input:" in comment[i], f"Error: {filename} has non-paired input/output"
-                assert "Expected Output:" in comment[i +
-                                                     1], f"Error: {filename} has non-paired input/output"
-                inputs.append(comment[i].replace(
-                    "Expected Input:", "").strip())
-                expected.append(
-                    comment[i + 1].replace("Expected Output:", "").strip())
-            return Test(filename, inputs, expected, False)
+        elif len(comments) == 2:  # input and output
+            assert "Input:" in comments[0], f"Error: {filename} has non-paired input/output"
+            assert "Output:" in comments[1], f"Error: {filename} has non-paired input/output"
+            input = comments[0].replace("Input:", "").strip().split()
+            expected = comments[1].replace("Output:", "").strip().split()
+            return Test(filename, input, expected, False)
+        else:
+            assert False, f"Error: {filename} heading comment is invalid"
 
     def __str__(self):
         return f"Test({self.filename}, {self.inputs}, {self.expected}, {self.should_fail})"
@@ -83,7 +83,7 @@ def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
         if test.inputs is None:  # no input
             try:
                 result = subprocess.run(
-                    [compiler, test.filename], capture_output=True, timeout=5)
+                    [compiler, test.filename], capture_output=True, timeout=TIMEOUT)
             except subprocess.TimeoutExpired:
                 print(red(f"Error: {test.filename} timed out."))
                 return TestResult(test, None, -1)
@@ -94,22 +94,34 @@ def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
         assert False, "Not implemented input for lab1 or lab2"
 
     def run_with_ir(compiler: str, test: Test) -> TestResult:  # lab3
-        raise NotImplementedError("Not implemented now")
-        from IR import run as ir_run, parse_file
-        temp_file = NamedTemporaryFile(suffix=".ll")
+        temp_ir_file = NamedTemporaryFile(suffix=".ll")
+        assert os.path.exists(IR_PATH), f"Error: {IR_PATH} not found."
+        assert test.expected is not None, f"Error: {test.filename} has no expected output."
         try:
             result = subprocess.run(
-                [compiler, test.filename, temp_file.name], capture_output=True, timeout=5)
-            if result.returncode != 0:
+                [compiler, test.filename, temp_ir_file.name],
+                capture_output=True,
+                timeout=TIMEOUT)
+            if result.returncode != 0:  # compile error
                 return TestResult(test, None, result.returncode)
-            irs = parse_file(args.file)
-            outputs = ir_run(irs)
+            with subprocess.Popen(["python3", IR_PATH, "-t", temp_ir_file.name],
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  text=True) as p:
+                if test.input is not None:
+                    outputs, _ = p.communicate(
+                        input="\n".join(test.input), timeout=TIMEOUT)
+                else:
+                    outputs, _ = p.communicate(timeout=TIMEOUT)
+                outputs = outputs.strip().split("\n")
+                returnvalue = p.returncode
+                # print(outputs, returnvalue)
+                return TestResult(test, outputs, returnvalue)
         except subprocess.TimeoutExpired:
             print(red(f"Error: {test.filename} timed out."))
             return TestResult(test, None, -1)
 
     def run_with_jar(compiler: str, test: Test) -> TestResult:  # lab4
-        VENUS_JAR = "venus.jar"
         raise NotImplementedError("Not implemented now")
 
     match lab:
@@ -140,7 +152,8 @@ def summary(test_results: list[TestResult]):
 def test_lab(compiler: str, lab: str) -> list[TestResult]:
     print(box(f"Running {lab} test..."))
     tests = os.listdir(f"tests/{lab}")
-    tests = filter(lambda x: x.endswith(".sy"), tests) # only test .sy files
+    tests = filter(lambda x: x.endswith(".sy"), tests)  # only test .sy files
+    # tests = filter(lambda x: x == "if_complex_expr.sy", tests)  # just for test
     tests = [Test.parse_file(f"tests/{lab}/{test}") for test in tests]
     test_results = [run_one_test(compiler, test, lab) for test in tests]
     return test_results
@@ -148,8 +161,8 @@ def test_lab(compiler: str, lab: str) -> list[TestResult]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test your compiler.")
-    parser.add_argument("input_file", type=str, help="your complier file")
-    parser.add_argument("lab", type=str, help="which lab to test",
+    parser.add_argument("input_file", type=str, help="Your complier file")
+    parser.add_argument("lab", type=str, help="Which lab to test",
                         choices=["lab1", "lab2", "lab3", "lab4"])
     args = parser.parse_args()
     input_file, lab = args.input_file, args.lab
