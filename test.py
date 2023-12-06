@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 TIMEOUT = 5
 IR_PATH = "./IR/main.py"
-VENUS_JAR = "venus.jar"
+VENUS_JAR = "./venus.jar"
 
 ### Color Utils ###
 
@@ -31,7 +31,7 @@ def box(s: str) -> str:
 @dataclass
 class Test:
     filename: str
-    input: list[str] | None
+    inputs: list[str] | None
     expected: list[str] | None
     should_fail: bool
 
@@ -65,7 +65,7 @@ class Test:
 
 
 class TestResult:
-    def __init__(self, test: Test, output: str | None, exit_code: int):
+    def __init__(self, test: Test, output: str | None | list[str], exit_code: int, concat_output: bool = False):
         self.test = test
         self.output = output
         self.exit_code = exit_code
@@ -75,7 +75,11 @@ class TestResult:
             if test.expected is None:
                 self.passed = exit_code == 0
             else:
-                self.passed = exit_code == 0 and output == test.expected
+                if not concat_output:  # lab3
+                    self.passed = exit_code == 0 and output == test.expected
+                else:  # lab4
+                    expected = "".join(test.expected)
+                    self.passed = exit_code == 0 and output == expected
 
 
 def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
@@ -94,23 +98,23 @@ def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
         assert False, "Not implemented input for lab1 or lab2"
 
     def run_with_ir(compiler: str, test: Test) -> TestResult:  # lab3
-        temp_ir_file = NamedTemporaryFile(suffix=".ll")
+        ir_file = NamedTemporaryFile(suffix=".ll")
         assert os.path.exists(IR_PATH), f"Error: {IR_PATH} not found."
         assert test.expected is not None, f"Error: {test.filename} has no expected output."
         try:
             result = subprocess.run(
-                [compiler, test.filename, temp_ir_file.name],
+                [compiler, test.filename, ir_file.name],
                 capture_output=True,
                 timeout=TIMEOUT)
             if result.returncode != 0:  # compile error
                 return TestResult(test, None, result.returncode)
-            with subprocess.Popen(["python3", IR_PATH, "-t", temp_ir_file.name],
+            with subprocess.Popen(["python3", IR_PATH, "-t", ir_file.name],
                                   stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE,
                                   text=True) as p:
-                if test.input is not None:
+                if test.inputs is not None:
                     outputs, _ = p.communicate(
-                        input="\n".join(test.input), timeout=TIMEOUT)
+                        input="\n".join(test.inputs), timeout=TIMEOUT)
                 else:
                     outputs, _ = p.communicate(timeout=TIMEOUT)
                 outputs = outputs.strip().split("\n")
@@ -121,7 +125,32 @@ def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
             return TestResult(test, None, -1)
 
     def run_with_jar(compiler: str, test: Test) -> TestResult:  # lab4
-        raise NotImplementedError("Not implemented now")
+        assembly_file = NamedTemporaryFile(suffix=".s")
+        assert os.path.exists(VENUS_JAR), f"Error: {VENUS_JAR} not found."
+        assert test.expected is not None, f"Error: {test.filename} has no expected output."
+        try:
+            result = subprocess.run(
+                [compiler, test.filename, assembly_file.name],
+                capture_output=True,
+                timeout=TIMEOUT)
+            if result.returncode != 0:  # compile error
+                return TestResult(test, None, result.returncode)
+            with subprocess.Popen(["java", "-jar", VENUS_JAR, assembly_file.name],
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  text=True) as p:
+                if test.inputs is not None:
+                    outputs, _ = p.communicate(
+                        input="\n".join(test.inputs), timeout=TIMEOUT)
+                else:
+                    outputs, _ = p.communicate(timeout=TIMEOUT)
+                outputs = outputs.strip().split(
+                    "\n")[0]  # remove last exit code line
+                returnvalue = p.returncode
+                return TestResult(test, outputs, returnvalue, concat_output=True)
+        except subprocess.TimeoutExpired:
+            print(red(f"Error: {test.filename} timed out."))
+            return TestResult(test, None, -1)
 
     match lab:
         case "lab1" | "lab2":
