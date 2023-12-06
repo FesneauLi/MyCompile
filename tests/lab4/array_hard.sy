@@ -24,7 +24,7 @@ int initV(int v[]) {
 int main() {
   int weight[6];
   int value[6];
-  int resutls[6][12];
+  int results[6][12];
 
   int r_i;
   int r_j;
@@ -37,7 +37,7 @@ int main() {
   while (r_i < 6) {
     r_j = 0;
     while (r_j < 12) {
-      resutls[r_i][r_j] = 0;
+      results[r_i][r_j] = 0;
       r_j = r_j + 1;
     }
     r_i = r_i + 1;
@@ -48,13 +48,13 @@ int main() {
     kj = 1;
     while (kj < 12) {
       if (kj < weight[ki]) {
-        resutls[ki][kj] = resutls[ki - 1][kj];
+        results[ki][kj] = results[ki - 1][kj];
       } else {
-        if (resutls[ki - 1][kj] >
-            value[ki] + resutls[ki - 1][kj - weight[ki]]) {
-          resutls[ki][kj] = resutls[ki - 1][kj];
+        if (results[ki - 1][kj] >
+            value[ki] + results[ki - 1][kj - weight[ki]]) {
+          results[ki][kj] = results[ki - 1][kj];
         } else {
-          resutls[ki][kj] = value[ki] + resutls[ki - 1][kj - weight[ki]];
+          results[ki][kj] = value[ki] + results[ki - 1][kj - weight[ki]];
         }
       }
       kj = kj + 1;
@@ -62,6 +62,6 @@ int main() {
     ki = ki + 1;
   }
 
-  write(resutls[5][11]);
+  write(results[5][11]);
   return 0;
 }
