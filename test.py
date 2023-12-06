@@ -11,7 +11,7 @@ from dataclasses import dataclass
 TIMEOUT = 5
 IR_PATH = "./IR/main.py"
 VENUS_JAR = "./venus.jar"
-PTYHON_PATH = sys.executable # always use the current python
+PYTHON_PATH = sys.executable # always use the current python
 JAVA_PATH = "java"
 
 ### Color Utils ###
@@ -111,7 +111,7 @@ def run_one_test(compiler: str, test: Test, lab: str) -> TestResult:
                 timeout=TIMEOUT)
             if result.returncode != 0:  # compile error
                 return TestResult(test, None, result.returncode)
-            with subprocess.Popen([PTYHON_PATH, IR_PATH, "-t", ir_file.name],
+            with subprocess.Popen([PYTHON_PATH, IR_PATH, "-t", ir_file.name],
                                   stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE,
                                   text=True) as p:
