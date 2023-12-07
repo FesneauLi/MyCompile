@@ -448,7 +448,7 @@ class FunctionFrame:
                             f"{op} is not implemented.")
                 case Li(label, value):
                     env[label] = value
-                # function definition and label is not a code
+                # function definition and label is not code
                 case Function(_) | Label(_):
                     pass
                 case Goto(label):
@@ -468,15 +468,12 @@ class FunctionFrame:
                     if len(params) == 0:
                         raise ValueError(
                             f"Function {self.name} needs more parameters.")
-                    # print(f"Param {dst} with {params[0]}")
                     env[dst] = params.pop(0)
                 case Call(dst, name):
-                    # print(f"Call {name} with {args}")
                     if name == 'read':
                         env[dst] = int(input())
                     elif name == 'write':
                         print(args[0])
-                        # print(f"\033[1;32m{args[0]}\033[0m")
                         args = []  # reset args
                     else:
                         env[dst] = env[name].new().run(args)
