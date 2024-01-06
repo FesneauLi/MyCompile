@@ -36,13 +36,11 @@ start: instruction*
     | "!" -> not
     | "+" -> pos
     
-
-COMMENT: "//" /[^\n]*/ NEWLINE
-NEWLINE: "\n"
-MULTILINE_COMMENT: /\/\*(\*(?!\/)|[^*])*\*\//
-
 %import python (NAME, DEC_NUMBER)
 %import common.WS
+%import common.CPP_COMMENT
+%import common.C_COMMENT
+
 %ignore WS
-%ignore COMMENT
-%ignore MULTILINE_COMMENT
+%ignore CPP_COMMENT
+%ignore C_COMMENT
