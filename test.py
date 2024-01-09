@@ -9,9 +9,9 @@ from dataclasses import dataclass
 ### Settings ###
 
 TIMEOUT = 5
-IR_PATH = "./IR/main.py"
+IR_PATH = "./ir.py"
 VENUS_JAR = "./venus.jar"
-PYTHON_PATH = sys.executable # always use the current python
+PYTHON_PATH = sys.executable  # always use the current python
 JAVA_PATH = "java"
 
 ### Color Utils ###
