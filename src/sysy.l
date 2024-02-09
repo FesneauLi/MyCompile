@@ -14,7 +14,7 @@ blank [ \t\n]
 {digit}+        { yylval = atoi(yytext); return INT; }
 "+"             { return ADD; }
 "*"             { return MUL; }
-{blank}           { }
+{blank}         { }
 .               { printf("ERROR(%s)\n", yytext); }
 
 %%
