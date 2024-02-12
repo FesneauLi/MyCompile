@@ -1,7 +1,7 @@
 CXX = g++
 FLEX = flex
 BISON = bison
-CXXFLAGS = -std=c++11 -g
+CXXFLAGS = -std=c++11 -g -Wall
 SRC_DIR = src
 
 CFILES = $(shell find $(SRC_DIR) -name "*.cc" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp")
