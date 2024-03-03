@@ -10,6 +10,6 @@ int main()
 	{
 		flag=1;
 	}
-	putint(flag);
+	write(flag);
 	return 0;
 }
