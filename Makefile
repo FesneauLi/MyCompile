@@ -36,4 +36,4 @@ clean:
 	rm -f compiler
 
 submit:
-	zip -r submit.zip $(SRC_DIR) Makefile
+	zip -r submit.zip $(SRC_DIR)
