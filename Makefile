@@ -1,11 +1,15 @@
 CXX = g++
 FLEX = flex
 BISON = bison
-CXXFLAGS = -std=c++11 -g -Wall
+CXXFLAGS = -std=c++17 -g -Wall
 SRC_DIR = src
 
-CFILES = $(shell find $(SRC_DIR) -name "*.cc" -o -name "*.c" -o -name "*.cpp" -o -name "*.hpp")
-OBJS = $(CFILES:.cc=.o)
+CFILES = $(shell find $(SRC_DIR) -name "*.c")
+OBJS = $(CFILES:.c=.o)
+CPPFILES = $(shell find $(SRC_DIR) -name "*.cpp")
+OBJS += $(CPPFILES:.cpp=.o)
+CCFILES = $(shell find $(SRC_DIR) -name "*.cc")
+OBJS += $(CCFILES:.cc=.o)
 LFILE = $(shell find $(SRC_DIR) -name "*.l")
 YFILE = $(shell find $(SRC_DIR) -name "*.y")
 LCCFILE = $(LFILE:.l=.yy.cc)
