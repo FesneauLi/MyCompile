@@ -35,7 +35,6 @@ class RelOp(Op):
 
 
 class UnOp(Op):
-    Not = "!"
     Neg = "-"
     Pos = "+"
 
@@ -361,7 +360,6 @@ start: instruction*
     | "%" -> mod
 
 ?unop : "-" -> neg
-    | "!" -> not
     | "+" -> pos
     
 %import python.NAME
@@ -483,7 +481,6 @@ op2func = {
     RelOp.Eq: lambda x, y: x == y,
     RelOp.Ne: lambda x, y: x != y,
     # unary op
-    UnOp.Not: lambda x: 1 if x == 0 else 0,
     UnOp.Neg: lambda x: -x,
     UnOp.Pos: lambda x: x,
 }
