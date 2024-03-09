@@ -298,8 +298,8 @@ start: instruction*
     | "*" NAME "=" NAME -> store
     | NAME "=" "*" NAME -> deref
     | NAME "=" NAME binop NAME -> binary
-    | NAME "=" NAME binop "#" DEC_NUMBER -> binaryi
-    | NAME "=" "#" DEC_NUMBER -> li
+    | NAME "=" NAME binop "#" SIGNED_INT -> binaryi
+    | NAME "=" "#" SIGNED_INT -> li
     | "PARAM" NAME -> param
     | "ARG" NAME -> arg
     | "RETURN" NAME -> return
@@ -307,7 +307,7 @@ start: instruction*
     | NAME "=" "CALL" NAME -> call
     | "CALL" NAME -> call
     | "FUNCTION" NAME ":" -> function
-    | "DEC" NAME "#" DEC_NUMBER -> dec
+    | "DEC" NAME "#" SIGNED_INT -> dec
 
 ?relop : "<" -> lt
     | ">" -> gt
@@ -326,7 +326,8 @@ start: instruction*
     | "!" -> not
     | "+" -> pos
     
-%import python (NAME, DEC_NUMBER)
+%import python.NAME
+%import common.SIGNED_INT
 %import common.WS
 %import common.CPP_COMMENT
 %import common.C_COMMENT
