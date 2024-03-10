@@ -471,7 +471,7 @@ op2func = {
     BinOp.Add: lambda x, y: x + y,
     BinOp.Sub: lambda x, y: x - y,
     BinOp.Mul: lambda x, y: x * y,
-    BinOp.Div: lambda x, y: x // y,
+    BinOp.Div: lambda x, y: int(x / y),
     BinOp.Mod: lambda x, y: x % y,
     # relation op
     RelOp.Gt: lambda x, y: x > y,
