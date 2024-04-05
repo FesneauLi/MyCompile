@@ -9,9 +9,13 @@ extern int yylex(void);
 %token INT 
 %token IDENT
 %token ADD MUL SUB DIV
-%token LPAREN RPAREN
+%token LPAREN RPAREN LB RB OB CB 
 %token AND OR NOT 
 %token EQ NE LT GT LE GE
+%token ASSIGN
+
+%token SEMI COLON COMMA
+%token IF ELSE WHILE FOR BREAK CONTINUE RETURN 
 
 %left OR
 %left AND
