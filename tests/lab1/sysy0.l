@@ -10,14 +10,11 @@ digit [0-9]
 blank [ \t\n]
 
 %%
-
 {digit}+        { yylval = atoi(yytext); return INT; }
 "+"             { return ADD; }
 "-"             { return SUB; }
 "*"             { return MUL; }
 "/"             { return DIV; }
-"("             { return LPAREN;}
-")"             { return RPAREN;}
 {blank}         { }
 .               { printf("ERROR(%s)\n", yytext); }
 
