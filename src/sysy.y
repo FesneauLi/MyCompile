@@ -17,13 +17,31 @@ extern int yylex(void);
 %token SEMI COLON COMMA
 %token IF ELSE WHILE FOR BREAK CONTINUE RETURN 
 
+
 %left OR
 %left AND
 %left EQ NE
 %left LT GT LE GE
 %right NOT
 
-%%
+
+
+%start CompUnit
+%% 
+
+CompUnit :  Decl {printf("Decl Success!");}
+    |       CompUnit Decl;
+    
+    
+
+Decl :      VarDecl;
+VarDecl :   BType VarDef;
+VarDef :    IDENT
+    |       IDENT ASSIGN Factor;
+
+
+BType :     INT {};
+
 Calc : 
     | Exp { printf("= %d\n", $1); }
     ;

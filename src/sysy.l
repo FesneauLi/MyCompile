@@ -48,6 +48,7 @@ blank [ \t\n]
 "continue" 				{printf("<CONTINUE>");return (CONTINUE);}
 "return" 				{printf("<RETURN>");return (RETURN);}
 
+"int"           {printf("<INT>");return (INT);}
 {blank}         { }
 .               { printf("ERROR(%s)\n", yytext); }
 

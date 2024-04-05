@@ -17,7 +17,7 @@ int main(){
     return 1;
   }
   yyparse();
-  int yylex();  // 调用词法分析器，每次返回一个TOKEN
+  // int yylex();  // 调用词法分析器，每次返回一个TOKEN
   fclose(yyin);
   return 0;
 }
