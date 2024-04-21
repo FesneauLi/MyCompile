@@ -6,12 +6,13 @@
 #include "sysy.tab.hh"
 %}
 
-digit [0-9]
+digit [0-9]+
+id [a-zA-Z_][a-zA-Z0-9_]*
 blank [ \t\n]
 
 %%
 
-{digit}+        { yylval = atoi(yytext);printf("<INTNUM>"); return INT; }
+
 "+"             { printf("<+>");return ADD; }
 "-"             { printf("<->");return SUB; }
 "*"             { printf("<*>");return MUL; }
@@ -40,6 +41,7 @@ blank [ \t\n]
 "&&"				{printf("<AND>");return (AND);}
 "||"				{printf("<OR>");return (OR);}
 
+"main" 					{printf("<MAIN>");return (MAIN);}
 "if" 					{printf("<IF>");return (IF);}
 "else" 					{printf("<ELSE>");return (ELSE);}
 "while" 				{printf("<WHILE>");return (WHILE);}
@@ -50,6 +52,10 @@ blank [ \t\n]
 
 "int"           {printf("<INT>");return (INT);}
 {blank}         { }
+
+{digit}        { yylval = atoi(yytext);printf("<INTNUM>"); return INT; }
+{id}        { yylval = atoi(yytext);printf("<IDENT>"); return IDENT; } 
+
 .               { printf("ERROR(%s)\n", yytext); }
 
 %%

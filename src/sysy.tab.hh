@@ -85,7 +85,8 @@ extern int yydebug;
     FOR = 286,                     /* FOR  */
     BREAK = 287,                   /* BREAK  */
     CONTINUE = 288,                /* CONTINUE  */
-    RETURN = 289                   /* RETURN  */
+    RETURN = 289,                  /* RETURN  */
+    MAIN = 290                     /* MAIN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
